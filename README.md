@@ -8,10 +8,12 @@ This module provides a plugin that intercepts and modifies the origin data for A
 
 ## Features
 
-- **Origin URL Modification**: Automatically modifies origin data for Adyen payment requests when initiated through Tapbuy
+- **Origin URL Extraction**: Automatically extracts origin data from Tapbuy GraphQL requests and applies it to Adyen payment requests
 - **Request Header Validation**: Validates Tapbuy requests using the `X-Tapbuy-Call` header for enhanced security
 - **GraphQL Integration**: Designed to work seamlessly with Magento 2 GraphQL API
-- **Flexible Configuration**: Customizes origin data based on Tapbuy request context
+- **State Data Parsing**: Extracts origin information from nested JSON state data in GraphQL variables
+- **URL Normalization**: Validates and normalizes origin URLs to ensure proper format
+- **Error Handling**: Graceful handling of malformed JSON or missing data without interrupting payment flow
 
 ## Requirements
 
@@ -70,15 +72,36 @@ The module uses Magento's plugin system to intercept the `Adyen\Payment\Gateway\
 When a payment is processed, the plugin:
 
 1. **Validates Request Headers**: Checks for the `X-Tapbuy-Call` header to ensure the request originates from Tapbuy
-2. **Modifies Origin Data**: Updates the origin information in Adyen payment requests when the request comes from Tapbuy's system
-3. **Maintains Security**: Ensures only legitimate Tapbuy requests can modify the origin data
+2. **Extracts GraphQL Request Data**: Parses the request body to extract GraphQL variables
+3. **Navigates Nested JSON**: Follows the path `variables.paymentMethod.adyen_additional_data_cc.stateData` to find state data
+4. **Parses State Data**: Deserializes the nested JSON state data to extract origin information
+5. **Validates Origin URL**: Ensures the origin URL has proper scheme and host components
+6. **Normalizes URL**: Constructs a normalized origin URL (scheme://host:port format)
+7. **Updates Payment Data**: Modifies the Adyen payment request with the extracted origin URL
+
+### Data Flow
+
+The plugin expects GraphQL requests with the following structure:
+```json
+{
+  "variables": {
+    "paymentMethod": {
+      "adyen_additional_data_cc": {
+        "stateData": "{\"origin\":\"https://example.com:3000\",\"...\":\"...\"}"
+      }
+    }
+  }
+}
+```
 
 ### Error Handling
 
 The plugin includes robust error handling:
 - Validates request headers to ensure legitimate Tapbuy requests
-- Maintains original payment flow if Tapbuy headers are missing
-- Prevents payment process interruption
+- Gracefully handles malformed JSON in request body or state data
+- Validates URL structure and components before applying changes
+- Maintains original payment flow if extraction fails or data is missing
+- Prevents payment process interruption through comprehensive exception handling
 
 ## Configuration
 
@@ -90,13 +113,31 @@ The module validates requests using the `X-Tapbuy-Call` header. This header must
 X-Tapbuy-Call: 1
 ```
 
-### Payment Additional Information Format
+### GraphQL Request Format
 
-The module detects Tapbuy requests using the `X-Tapbuy-Call` header and modifies the origin data accordingly.
+The module expects Tapbuy GraphQL requests to include state data in the following format:
+
+```json
+{
+  "variables": {
+    "paymentMethod": {
+      "adyen_additional_data_cc": {
+        "stateData": "{\"origin\":\"https://your-domain.com:3000\"}"
+      }
+    }
+  }
+}
+```
+
+The `stateData` field should contain a JSON string with an `origin` property that specifies the origin URL for the Adyen payment.
 
 ### Origin Data Modification
 
-When a Tapbuy request is detected, the plugin modifies the origin data to use Tapbuy-specific origin URLs for proper payment processing.
+When a Tapbuy request is detected, the plugin:
+- Extracts the origin URL from the nested JSON state data
+- Validates the URL format (must include scheme and host)
+- Normalizes the URL to `scheme://host:port` format
+- Applies the normalized origin to the Adyen payment request
 
 ## File Structure
 
@@ -138,10 +179,14 @@ The plugin is configured in `etc/di.xml`:
 
 #### OriginDataBuilderPlugin
 - **Namespace**: `Tapbuy\Adyen\Plugin`
-- **Purpose**: Modifies Adyen origin data with Tapbuy-specific origin URLs
+- **Purpose**: Extracts origin data from Tapbuy GraphQL requests and applies it to Adyen payments
 - **Method**: `afterBuild()` - Plugin method that runs after the original build method
 - **Dependencies**: 
-  - `RequestInterface` - For accessing HTTP request headers
+  - `RequestInterface` - For accessing HTTP request headers and body content
+  - `Json` - For parsing JSON data from GraphQL requests and state data
+- **Key Methods**:
+  - `extractOriginFromTapbuyRequest()` - Extracts and validates origin from GraphQL request
+  - `getNestedValue()` - Safely navigates nested array structures
 
 ## Troubleshooting
 
@@ -157,19 +202,16 @@ The plugin is configured in `etc/di.xml`:
    - Check that the `X-Tapbuy-Call` header is being sent with requests
 
 3. **Origin Data Issues**
-   - Check that Tapbuy data is properly configured for origin URLs
-   - Verify that the correct origin is being set for payment requests
+   - Verify that the GraphQL request includes the correct state data structure
+   - Check that the origin URL in state data has valid scheme and host
+   - Ensure the `stateData` field contains valid JSON with an `origin` property
 
-4. **Headers Not Detected**
+4. **JSON Parsing Errors**
+   - Validate that the GraphQL request body is properly formatted JSON
+   - Check that the nested `stateData` field contains valid JSON
+   - Verify the origin URL format in the state data
+
+5. **Headers Not Detected**
    - Ensure the `X-Tapbuy-Call` header is included in HTTP requests
    - Verify server configuration allows custom headers
    - Check that headers are not being stripped by proxies or load balancers
-
-### Logging
-
-The module handles requests gracefully. For debugging, you can modify the plugin in `OriginDataBuilderPlugin.php` to add logging:
-
-```php
-// Add logging to track origin data modifications
-$this->logger->info('Tapbuy Adyen plugin: Origin data modified for Tapbuy request');
-```
