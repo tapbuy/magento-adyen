@@ -2,7 +2,7 @@
     "name": "tapbuy/adyen",
     "description": "Tapbuy Adyen Payment for Magento 2 GraphQL",
     "type": "magento2-module",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "license": [
         "OSL-3.0"
     ],
