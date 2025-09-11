@@ -80,9 +80,28 @@ class OriginDataBuilderPlugin
             return null;
         }
 
+        $paymentMethod = $this->getNestedValue($payload, ['variables', 'paymentMethod'], null);
+
+        if ($paymentMethod === null) {
+            return null;
+        }
+
+        $additionalData = null;
+
+        if (array_key_exists('adyen_additional_data_cc', $paymentMethod)) {
+            $additionalData = $paymentMethod['adyen_additional_data_cc'];
+        }
+        if (array_key_exists('adyen_additional_data_hpp', $paymentMethod)) {
+            $additionalData = $paymentMethod['adyen_additional_data_hpp'];
+        }
+
+        if (!is_array($additionalData)) {
+            return null;
+        }
+
         $stateDataJson = $this->getNestedValue(
-            $payload,
-            ['variables', 'paymentMethod', 'adyen_additional_data_cc', 'stateData']
+            $additionalData,
+            ['stateData']
         );
 
         if (!is_string($stateDataJson) || $stateDataJson === '') {
