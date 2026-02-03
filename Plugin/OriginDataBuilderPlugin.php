@@ -5,6 +5,7 @@ namespace Tapbuy\Adyen\Plugin;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Adyen\Payment\Gateway\Request\OriginDataBuilder as AdyenOriginDataBuilder;
+use Tapbuy\RedirectTracking\Logger\TapbuyLogger;
 
 class OriginDataBuilderPlugin
 {
@@ -19,15 +20,23 @@ class OriginDataBuilderPlugin
     private $json;
 
     /**
+     * @var TapbuyLogger
+     */
+    private $logger;
+
+    /**
      * @param RequestInterface $request
      * @param Json $json
+     * @param TapbuyLogger $logger
      */
     public function __construct(
         RequestInterface $request,
-        Json $json
+        Json $json,
+        TapbuyLogger $logger
     ) {
         $this->request = $request;
         $this->json = $json;
+        $this->logger = $logger;
     }
 
     /**
@@ -48,7 +57,13 @@ class OriginDataBuilderPlugin
 
         $tapbuyOrigin = $this->extractOriginFromTapbuyRequest();
         if (!empty($isTapbuyCall) && $tapbuyOrigin) {
+            $originalOrigin = $result['body']['origin'] ?? null;
             $result['body']['origin'] = $tapbuyOrigin;
+            
+            $this->logger->info('Adyen origin modified for Tapbuy call', [
+                'original_origin' => $originalOrigin,
+                'tapbuy_origin' => $tapbuyOrigin,
+            ]);
         }
 
         return $result;
@@ -73,6 +88,9 @@ class OriginDataBuilderPlugin
         try {
             $payload = $this->json->unserialize($raw);
         } catch (\Throwable $e) {
+            $this->logger->warning('Failed to parse Tapbuy request body for origin extraction', [
+                'error' => $e->getMessage(),
+            ]);
             return null;
         }
 
@@ -111,6 +129,9 @@ class OriginDataBuilderPlugin
         try {
             $stateData = $this->json->unserialize($stateDataJson);
         } catch (\Throwable $e) {
+            $this->logger->warning('Failed to parse stateData JSON for origin extraction', [
+                'error' => $e->getMessage(),
+            ]);
             return null;
         }
 
@@ -121,6 +142,9 @@ class OriginDataBuilderPlugin
 
         $parts = @parse_url($origin);
         if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            $this->logger->warning('Invalid origin URL format in Adyen stateData', [
+                'origin' => $origin,
+            ]);
             return null;
         }
         $port = isset($parts['port']) ? ':' . $parts['port'] : '';
