@@ -5,6 +5,7 @@ namespace Tapbuy\Adyen\Plugin;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Adyen\Payment\Gateway\Request\OriginDataBuilder as AdyenOriginDataBuilder;
+use Tapbuy\RedirectTracking\Api\TapbuyRequestDetectorInterface;
 use Tapbuy\RedirectTracking\Logger\TapbuyLogger;
 
 class OriginDataBuilderPlugin
@@ -25,18 +26,26 @@ class OriginDataBuilderPlugin
     private $logger;
 
     /**
+     * @var TapbuyRequestDetectorInterface
+     */
+    private $requestDetector;
+
+    /**
      * @param RequestInterface $request
      * @param Json $json
      * @param TapbuyLogger $logger
+     * @param TapbuyRequestDetectorInterface $requestDetector
      */
     public function __construct(
         RequestInterface $request,
         Json $json,
-        TapbuyLogger $logger
+        TapbuyLogger $logger,
+        TapbuyRequestDetectorInterface $requestDetector
     ) {
         $this->request = $request;
         $this->json = $json;
         $this->logger = $logger;
+        $this->requestDetector = $requestDetector;
     }
 
     /**
@@ -53,10 +62,10 @@ class OriginDataBuilderPlugin
         array $buildSubject
     ): array {
         // Optional: only act on Tapbuy calls
-        $isTapbuyCall = $this->request->getHeader('X-Tapbuy-Call');
+        $isTapbuyCall = $this->requestDetector->isTapbuyCall();
 
         $tapbuyOrigin = $this->extractOriginFromTapbuyRequest();
-        if (!empty($isTapbuyCall) && $tapbuyOrigin) {
+        if ($isTapbuyCall && $tapbuyOrigin) {
             $originalOrigin = $result['body']['origin'] ?? null;
             $result['body']['origin'] = $tapbuyOrigin;
             
