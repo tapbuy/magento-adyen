@@ -5,8 +5,8 @@ namespace Tapbuy\Adyen\Plugin;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Adyen\Payment\Gateway\Request\OriginDataBuilder as AdyenOriginDataBuilder;
+use Tapbuy\RedirectTracking\Api\LoggerInterface;
 use Tapbuy\RedirectTracking\Api\TapbuyRequestDetectorInterface;
-use Tapbuy\RedirectTracking\Logger\TapbuyLogger;
 
 class OriginDataBuilderPlugin
 {
@@ -21,7 +21,7 @@ class OriginDataBuilderPlugin
     private $json;
 
     /**
-     * @var TapbuyLogger
+     * @var LoggerInterface
      */
     private $logger;
 
@@ -33,13 +33,13 @@ class OriginDataBuilderPlugin
     /**
      * @param RequestInterface $request
      * @param Json $json
-     * @param TapbuyLogger $logger
+     * @param LoggerInterface $logger
      * @param TapbuyRequestDetectorInterface $requestDetector
      */
     public function __construct(
         RequestInterface $request,
         Json $json,
-        TapbuyLogger $logger,
+        LoggerInterface $logger,
         TapbuyRequestDetectorInterface $requestDetector
     ) {
         $this->request = $request;
