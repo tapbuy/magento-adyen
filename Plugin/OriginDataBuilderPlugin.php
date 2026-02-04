@@ -80,7 +80,10 @@ class OriginDataBuilderPlugin
 
     /**
      * Extracts and normalizes origin from Tapbuy GraphQL request body stateData.
+     *
      * Path: variables.paymentMethod.adyen_additional_data_cc.stateData
+     *
+     * @return string|null
      */
     private function extractOriginFromTapbuyRequest(): ?string
     {
