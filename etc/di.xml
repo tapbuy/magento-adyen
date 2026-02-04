@@ -5,4 +5,11 @@
                 type="Tapbuy\Adyen\Plugin\OriginDataBuilderPlugin"
                 sortOrder="10"/>
     </type>
+    
+    <!-- Inject centralized Tapbuy Logger -->
+    <type name="Tapbuy\Adyen\Plugin\OriginDataBuilderPlugin">
+        <arguments>
+            <argument name="logger" xsi:type="object">Tapbuy\RedirectTracking\Logger\TapbuyLogger</argument>
+        </arguments>
+    </type>
 </config>
