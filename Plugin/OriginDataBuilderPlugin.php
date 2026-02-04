@@ -149,7 +149,16 @@ class OriginDataBuilderPlugin
             return null;
         }
 
-        $parts = @parse_url($origin);
+        try {
+            $parts = parse_url($origin);
+        } catch (\ValueError $e) {
+            $this->logger->warning('Malformed origin URL in Adyen stateData', [
+                'origin' => $origin,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
         if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
             $this->logger->warning('Invalid origin URL format in Adyen stateData', [
                 'origin' => $origin,
