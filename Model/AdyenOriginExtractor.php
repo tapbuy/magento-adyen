@@ -41,7 +41,7 @@ class AdyenOriginExtractor
     /**
      * Extracts and normalizes origin from Tapbuy GraphQL request body stateData.
      *
-     * Path: variables.paymentMethod.adyen_additional_data_cc.stateData
+     * Path: variables.paymentMethod.(adyen_additional_data_cc|adyen_additional_data_hpp).stateData
      *
      * @return string|null
      */
