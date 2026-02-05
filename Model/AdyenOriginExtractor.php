@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tapbuy\Adyen\Model;
 
 use Magento\Framework\App\RequestInterface;
