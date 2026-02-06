@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tapbuy\Adyen\Plugin;
 
 use Adyen\Payment\Gateway\Request\OriginDataBuilder as AdyenOriginDataBuilder;
