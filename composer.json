@@ -2,7 +2,7 @@
     "name": "tapbuy/adyen",
     "description": "Tapbuy Adyen Payment for Magento 2 GraphQL",
     "type": "magento2-module",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "license": [
         "OSL-3.0"
     ],
@@ -10,7 +10,7 @@
         "php": "^7.4 || ^8.1",
         "magento/framework": "^103.0",
         "adyen/module-payment": "^9.0 || ^10.0",
-        "tapbuy/redirect-tracking": "^1.5"
+        "tapbuy/redirect-tracking": "^1.6"
     },
     "autoload": {
         "files": [
