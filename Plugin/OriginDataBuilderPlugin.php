@@ -6,6 +6,7 @@ namespace Tapbuy\Adyen\Plugin;
 
 use Adyen\Payment\Gateway\Request\OriginDataBuilder as AdyenOriginDataBuilder;
 use Tapbuy\Adyen\Model\AdyenOriginExtractor;
+use Tapbuy\RedirectTracking\Api\ConfigInterface;
 use Tapbuy\RedirectTracking\Api\LoggerInterface;
 use Tapbuy\RedirectTracking\Api\TapbuyRequestDetectorInterface;
 
@@ -22,6 +23,11 @@ class OriginDataBuilderPlugin
     private $requestDetector;
 
     /**
+     * @var ConfigInterface
+     */
+    private $config;
+
+    /**
      * @var AdyenOriginExtractor
      */
     private $originExtractor;
@@ -29,15 +35,18 @@ class OriginDataBuilderPlugin
     /**
      * @param LoggerInterface $logger
      * @param TapbuyRequestDetectorInterface $requestDetector
+     * @param ConfigInterface $config
      * @param AdyenOriginExtractor $originExtractor
      */
     public function __construct(
         LoggerInterface $logger,
         TapbuyRequestDetectorInterface $requestDetector,
+        ConfigInterface $config,
         AdyenOriginExtractor $originExtractor
     ) {
         $this->logger = $logger;
         $this->requestDetector = $requestDetector;
+        $this->config = $config;
         $this->originExtractor = $originExtractor;
     }
 
@@ -54,11 +63,12 @@ class OriginDataBuilderPlugin
         array $result,
         array $buildSubject
     ): array {
-        // Optional: only act on Tapbuy calls
-        $isTapbuyCall = $this->requestDetector->isTapbuyCall();
+        if (!$this->requestDetector->isTapbuyCall() || !$this->config->isEnabled()) {
+            return $result;
+        }
 
         $tapbuyOrigin = $this->originExtractor->extractOriginFromTapbuyRequest();
-        if ($isTapbuyCall && $tapbuyOrigin) {
+        if ($tapbuyOrigin) {
             $originalOrigin = $result['body']['origin'] ?? null;
             $result['body']['origin'] = $tapbuyOrigin;
             
