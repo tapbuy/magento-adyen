@@ -193,7 +193,7 @@ class AdyenOriginExtractor
      * Returns the value for the last existing key found among $keys in $data.
      * Iterates in order so later keys take precedence (last-wins).
      *
-     * @param array    $data
+     * @param array $data
      * @param string[] $keys
      * @return mixed|null
      */
