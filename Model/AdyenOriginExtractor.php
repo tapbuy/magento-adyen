@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tapbuy\Adyen\Model;
 
+use Laminas\Uri\Uri;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Tapbuy\RedirectTracking\Api\LoggerInterface;
@@ -171,8 +172,8 @@ class AdyenOriginExtractor
     private function normalizeOrigin(string $origin): ?string
     {
         try {
-            $parts = parse_url($origin);
-        } catch (\ValueError $e) {
+            $uri = new Uri($origin);
+        } catch (\Throwable $e) {
             $this->logger->warning('Malformed origin URL in Adyen stateData', [
                 'origin' => $origin,
                 'error' => $e->getMessage(),
@@ -180,16 +181,16 @@ class AdyenOriginExtractor
             return null;
         }
 
-        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        if (!$uri->isValid() || !$uri->getScheme() || !$uri->getHost()) {
             $this->logger->warning('Invalid origin URL format in Adyen stateData', [
                 'origin' => $origin,
             ]);
             return null;
         }
 
-        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $port = $uri->getPort() ? ':' . $uri->getPort() : '';
 
-        return sprintf('%s://%s%s', $parts['scheme'], $parts['host'], $port);
+        return sprintf('%s://%s%s', $uri->getScheme(), $uri->getHost(), $port);
     }
 
     /**
