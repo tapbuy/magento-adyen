@@ -135,14 +135,10 @@ class AdyenOriginExtractor
      */
     private function extractAdditionalData(array $paymentMethod): ?array
     {
-        $additionalData = null;
-
-        if (array_key_exists('adyen_additional_data_cc', $paymentMethod)) {
-            $additionalData = $paymentMethod['adyen_additional_data_cc'];
-        }
-        if (array_key_exists('adyen_additional_data_hpp', $paymentMethod)) {
-            $additionalData = $paymentMethod['adyen_additional_data_hpp'];
-        }
+        $additionalData = $this->findValueByKeys(
+            $paymentMethod,
+            ['adyen_additional_data_cc', 'adyen_additional_data_hpp']
+        );
 
         return is_array($additionalData) ? $additionalData : null;
     }
@@ -191,6 +187,25 @@ class AdyenOriginExtractor
         $port = $uri->getPort() ? ':' . $uri->getPort() : '';
 
         return sprintf('%s://%s%s', $uri->getScheme(), $uri->getHost(), $port);
+    }
+
+    /**
+     * Returns the value for the last existing key found among $keys in $data.
+     * Iterates in order so later keys take precedence (last-wins).
+     *
+     * @param array    $data
+     * @param string[] $keys
+     * @return mixed|null
+     */
+    private function findValueByKeys(array $data, array $keys)
+    {
+        $value = null;
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $data)) {
+                $value = $data[$key];
+            }
+        }
+        return $value;
     }
 
     /**
