@@ -89,6 +89,8 @@ class AdyenOriginExtractor
     }
 
     /**
+     * Returns the raw request body content, or null if the request does not support it.
+     *
      * @return string|null
      */
     private function getRawRequestBody(): ?string
@@ -101,24 +103,19 @@ class AdyenOriginExtractor
     }
 
     /**
+     * Deserializes the raw request body JSON into an array.
+     *
      * @param string $raw
      * @return array|null
      */
     private function parseRequestBody(string $raw): ?array
     {
-        try {
-            $payload = $this->json->unserialize($raw);
-        } catch (\Throwable $e) {
-            $this->logger->warning('Failed to parse Tapbuy request body for origin extraction', [
-                'error' => $e->getMessage(),
-            ]);
-            return null;
-        }
-
-        return is_array($payload) ? $payload : null;
+        return $this->unserializeToArray($raw, 'Failed to parse Tapbuy request body for origin extraction');
     }
 
     /**
+     * Extracts the paymentMethod node from the GraphQL request payload.
+     *
      * @param array $payload
      * @return array|null
      */
@@ -130,6 +127,8 @@ class AdyenOriginExtractor
     }
 
     /**
+     * Extracts the Adyen additional data block (CC or HPP) from the paymentMethod node.
+     *
      * @param array $paymentMethod
      * @return array|null
      */
@@ -144,24 +143,40 @@ class AdyenOriginExtractor
     }
 
     /**
+     * Deserializes the stateData JSON string nested inside the Adyen additional data.
+     *
      * @param string $stateDataJson
      * @return array|null
      */
     private function parseStateData(string $stateDataJson): ?array
     {
+        return $this->unserializeToArray($stateDataJson, 'Failed to parse stateData JSON for origin extraction');
+    }
+
+    /**
+     * Unserialize a JSON string to an array, logging a warning on failure.
+     *
+     * @param string $json
+     * @param string $logContext Warning message logged when deserialization fails
+     * @return array|null
+     */
+    private function unserializeToArray(string $json, string $logContext): ?array
+    {
         try {
-            $stateData = $this->json->unserialize($stateDataJson);
+            $result = $this->json->unserialize($json);
         } catch (\Throwable $e) {
-            $this->logger->warning('Failed to parse stateData JSON for origin extraction', [
+            $this->logger->warning($logContext, [
                 'error' => $e->getMessage(),
             ]);
             return null;
         }
 
-        return is_array($stateData) ? $stateData : null;
+        return is_array($result) ? $result : null;
     }
 
     /**
+     * Validates and normalizes an origin URL to scheme://host[:port] format.
+     *
      * @param string $origin
      * @return string|null
      */
