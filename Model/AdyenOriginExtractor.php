@@ -12,33 +12,15 @@ use Tapbuy\RedirectTracking\Api\LoggerInterface;
 class AdyenOriginExtractor
 {
     /**
-     * @var RequestInterface
-     */
-    private $request;
-
-    /**
-     * @var Json
-     */
-    private $json;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @param RequestInterface $request
      * @param Json $json
      * @param LoggerInterface $logger
      */
     public function __construct(
-        RequestInterface $request,
-        Json $json,
-        LoggerInterface $logger
+        private readonly RequestInterface $request,
+        private readonly Json $json,
+        private readonly LoggerInterface $logger
     ) {
-        $this->request = $request;
-        $this->json = $json;
-        $this->logger = $logger;
     }
 
     /**
@@ -211,9 +193,9 @@ class AdyenOriginExtractor
      *
      * @param array $data
      * @param string[] $keys
-     * @return mixed|null
+     * @return mixed
      */
-    private function findValueByKeys(array $data, array $keys)
+    private function findValueByKeys(array $data, array $keys): mixed
     {
         $value = null;
         foreach ($keys as $key) {
@@ -229,9 +211,9 @@ class AdyenOriginExtractor
      *
      * @param array $data
      * @param string[] $path
-     * @return mixed|null
+     * @return mixed
      */
-    private function getNestedValue(array $data, array $path)
+    private function getNestedValue(array $data, array $path): mixed
     {
         $current = $data;
         foreach ($path as $key) {
