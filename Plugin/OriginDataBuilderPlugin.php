@@ -13,41 +13,17 @@ use Tapbuy\RedirectTracking\Api\TapbuyRequestDetectorInterface;
 class OriginDataBuilderPlugin
 {
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var TapbuyRequestDetectorInterface
-     */
-    private $requestDetector;
-
-    /**
-     * @var ConfigInterface
-     */
-    private $config;
-
-    /**
-     * @var AdyenOriginExtractor
-     */
-    private $originExtractor;
-
-    /**
      * @param LoggerInterface $logger
      * @param TapbuyRequestDetectorInterface $requestDetector
      * @param ConfigInterface $config
      * @param AdyenOriginExtractor $originExtractor
      */
     public function __construct(
-        LoggerInterface $logger,
-        TapbuyRequestDetectorInterface $requestDetector,
-        ConfigInterface $config,
-        AdyenOriginExtractor $originExtractor
+        private readonly LoggerInterface $logger,
+        private readonly TapbuyRequestDetectorInterface $requestDetector,
+        private readonly ConfigInterface $config,
+        private readonly AdyenOriginExtractor $originExtractor
     ) {
-        $this->logger = $logger;
-        $this->requestDetector = $requestDetector;
-        $this->config = $config;
-        $this->originExtractor = $originExtractor;
     }
 
     /**
