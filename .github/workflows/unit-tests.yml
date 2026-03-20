@@ -32,6 +32,12 @@ jobs:
           repository: tapbuy/magento-redirect-plugin
           path: redirect-tracking-module
 
+      - name: Checkout adyen/module-payment dependency
+        uses: actions/checkout@v4
+        with:
+          repository: Adyen/adyen-magento2
+          path: adyen-module-payment
+
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
@@ -63,6 +69,8 @@ jobs:
           mkdir -p ~/magento/vendor/tapbuy
           cp -r module ~/magento/vendor/tapbuy/adyen
           cp -r redirect-tracking-module ~/magento/vendor/tapbuy/redirect-tracking
+          mkdir -p ~/magento/vendor/adyen
+          cp -r adyen-module-payment ~/magento/vendor/adyen/module-payment
 
       - name: Create test bootstrap
         run: |
@@ -72,7 +80,8 @@ jobs:
           require_once __DIR__ . '/../../dev/tests/unit/framework/bootstrap.php';
           $autoloader = include __DIR__ . '/../../vendor/autoload.php';
           $autoloader->addPsr4('Tapbuy\\Adyen\\', __DIR__ . '/adyen/');
-          $autoloader->addPsr4('Tapbuy\\RedirectTracking\\', __DIR__ . '/redirect-tracking/');
+          $autoloader->addPsr4('Tapbuy\\RedirectTracking\\', __DIR__ . '/../tapbuy/redirect-tracking/');
+          $autoloader->addPsr4('Adyen\\Payment\\', __DIR__ . '/../adyen/module-payment/');
           BOOTSTRAP
 
       - name: Run PHPUnit
