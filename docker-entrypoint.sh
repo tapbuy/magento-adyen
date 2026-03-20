@@ -3,6 +3,7 @@
 # Expects volumes:
 #   /module                      — adyen source (read-only)
 #   /tapbuy-redirect-tracking    — redirect-tracking source (read-only)
+#   /tapbuy-data-scrubber        — data-scrubber source (read-only)
 #   /thirdparty-adyen            — Adyen/adyen-magento2 (read-only)
 set -euo pipefail
 
@@ -20,13 +21,19 @@ fi
 
 mkdir -p /magento/vendor/tapbuy
 rm -rf /magento/vendor/tapbuy/adyen
+mkdir -p /magento/vendor/tapbuy/adyen
+cp -rT /module /magento/vendor/tapbuy/adyen
 rm -rf /magento/vendor/tapbuy/redirect-tracking
-cp -r /module /magento/vendor/tapbuy/adyen
-cp -r /tapbuy-redirect-tracking /magento/vendor/tapbuy/redirect-tracking
+mkdir -p /magento/vendor/tapbuy/redirect-tracking
+cp -rT /tapbuy-redirect-tracking /magento/vendor/tapbuy/redirect-tracking
+rm -rf /magento/vendor/tapbuy/data-scrubber
+mkdir -p /magento/vendor/tapbuy/data-scrubber
+cp -rT /tapbuy-data-scrubber /magento/vendor/tapbuy/data-scrubber
 
 mkdir -p /magento/vendor/adyen
 rm -rf /magento/vendor/adyen/module-payment
-cp -r /thirdparty-adyen /magento/vendor/adyen/module-payment
+mkdir -p /magento/vendor/adyen/module-payment
+cp -rT /thirdparty-adyen /magento/vendor/adyen/module-payment
 
 cat > /magento/vendor/tapbuy/bootstrap.php << 'BOOTSTRAP'
 <?php
@@ -35,6 +42,7 @@ require_once __DIR__ . '/../../dev/tests/unit/framework/bootstrap.php';
 $autoloader = include __DIR__ . '/../../vendor/autoload.php';
 $autoloader->addPsr4('Tapbuy\\Adyen\\', __DIR__ . '/adyen/');
 $autoloader->addPsr4('Tapbuy\\RedirectTracking\\', __DIR__ . '/redirect-tracking/');
+$autoloader->addPsr4('Tapbuy\\DataScrubber\\', __DIR__ . '/data-scrubber/src/');
 $autoloader->addPsr4('Adyen\\Payment\\', __DIR__ . '/../adyen/module-payment/');
 BOOTSTRAP
 

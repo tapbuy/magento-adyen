@@ -214,6 +214,7 @@ The plugin is configured in `etc/di.xml`:
 5. **Headers Not Detected**
    - Ensure the `X-Tapbuy-Call` header is included in HTTP requests
    - Verify server configuration allows custom headers
+   - Check that headers are not being stripped by proxies or load balancers
 
 ## Development
 
@@ -246,4 +247,3 @@ make test
 On the first run, the Docker image is built and Magento is installed into a named volume (`tapbuy-magento-2.4.7-p5-php83`). Subsequent runs reuse the cached volume and are fast.
 
 > Do not use `composer test` — it runs PHPUnit without the Magento bootstrap and will fail or produce misleading results.
-   - Check that headers are not being stripped by proxies or load balancers
