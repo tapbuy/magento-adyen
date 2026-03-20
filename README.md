@@ -215,3 +215,35 @@ The plugin is configured in `etc/di.xml`:
    - Ensure the `X-Tapbuy-Call` header is included in HTTP requests
    - Verify server configuration allows custom headers
    - Check that headers are not being stripped by proxies or load balancers
+
+## Development
+
+### Running Tests
+
+Tests run inside a Docker container that replicates the CI environment (PHP 8.3, Magento 2.4.7-p5). Docker must be running.
+
+**Prerequisites:** clone the following sibling repository next to this one:
+
+```bash
+# From the parent directory
+git clone git@github.com:tapbuy/magento-redirect-plugin.git redirect-tracking
+```
+
+`Adyen/adyen-magento2` is cloned automatically to `~/.tapbuy-ci-cache/` on first run.
+
+**First-time setup:**
+
+```bash
+cp auth.json.dist auth.json
+# Fill in your repo.magento.com public/private keys in auth.json
+```
+
+**Run all unit tests:**
+
+```bash
+make test
+```
+
+On the first run, the Docker image is built and Magento is installed into a named volume (`tapbuy-magento-2.4.7-p5-php83`). Subsequent runs reuse the cached volume and are fast.
+
+> Do not use `composer test` — it runs PHPUnit without the Magento bootstrap and will fail or produce misleading results.
