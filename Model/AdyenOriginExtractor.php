@@ -52,6 +52,19 @@ class AdyenOriginExtractor
             return null;
         }
 
+        return $this->extractOriginFromAdditionalData($additionalData);
+    }
+
+    /**
+     * Extracts and normalizes the origin from an Adyen additional data block.
+     *
+     * Reads the stateData JSON, parses it, and pulls the origin field.
+     *
+     * @param array $additionalData
+     * @return string|null
+     */
+    private function extractOriginFromAdditionalData(array $additionalData): ?string
+    {
         $stateDataJson = $this->getNestedValue($additionalData, ['stateData']);
         if (!is_string($stateDataJson) || $stateDataJson === '') {
             return null;
